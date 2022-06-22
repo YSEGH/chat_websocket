@@ -26,11 +26,6 @@ export class ChatComponent implements OnInit {
 
   ngOnInit(): void {
     this.setCurrentUser();
-    let container = document.querySelector(
-      '.messages-container'
-    ) as HTMLElement;
-    console.log(container);
-
     this.messageArray = [
       {
         id: this.currentUser.id,
@@ -93,8 +88,6 @@ export class ChatComponent implements OnInit {
         roomId: 'hjfdshfuerjk',
       },
     ];
-    container.scrollTop = 2000;
-
     this.chatService.setUserOnline(this.currentUser);
     this.chatService.getUsersOnline().subscribe((data) => {
       this.userOnlineArray = data.filter(
@@ -130,6 +123,7 @@ export class ChatComponent implements OnInit {
           (room) => room.roomId === data.roomId
         )[0].messages;
       }
+      this.scrollToBottom();
 
       console.log('message array', this.messageArray);
       console.log('update room', updateRooms);
@@ -141,14 +135,21 @@ export class ChatComponent implements OnInit {
     console.log(changes);
   }
 
+  scrollToBottom() {
+    let container = document.querySelector(
+      '.messages-container'
+    ) as HTMLElement;
+    console.log(container.scrollHeight);
+    container.scrollTo(0, container.scrollHeight + 100);
+  }
+
   setCurrentUser() {
     this.currentUser =
       users[Math.floor(Math.random() * (users.length - 1 - 0 + 1) + 0)];
   }
 
   setCurrentRoom(room: Room) {
-    let container = document.querySelector('message-container');
-    container?.scrollTo(0, container.scrollHeight);
+    this.scrollToBottom();
     this.currentRoom = this.rooms.filter((x) => x.roomId === room.roomId)[0];
     this.messageArray = this.currentRoom.messages;
   }
