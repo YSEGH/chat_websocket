@@ -11,6 +11,7 @@ let users = [];
 
 io.on("connection", (socket) => {
   socket.on("user connected", (data) => {
+    console.log(socket.id);
     let user = {
       id: data.id,
       name: data.name,
@@ -21,7 +22,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("create room", (data) => {
-    console.log(data.selectedUser);
     let selectedUserId = data.selectedUser.socketId;
     let selectedUserSocket = io.sockets.sockets.get(selectedUserId);
     let currentUserId = socket.id;
@@ -63,8 +63,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send message", (data) => {
-    console.log(data);
     io.to(data.roomId).emit("send message", data);
+  });
+
+  socket.on("user is writing", (data) => {
+    console.log(data);
+    io.to(data.roomId).emit("user", data);
   });
 
   socket.on("user disconnected", (data) => {

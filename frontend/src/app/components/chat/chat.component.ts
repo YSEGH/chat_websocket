@@ -21,12 +21,13 @@ export class ChatComponent implements OnInit {
   public currentUser: ChatUser = { id: '', name: '' };
   public message: string = '';
   public messageArray: Message[] = [];
+  public writingUser?: ChatUser;
 
   constructor(private chatService: ChatService) {}
 
   ngOnInit(): void {
     this.setCurrentUser();
-    this.messageArray = [
+    /* this.messageArray = [
       {
         id: this.currentUser.id,
         name: this.currentUser.name,
@@ -87,17 +88,21 @@ export class ChatComponent implements OnInit {
         message: 'Hey, comment vas tu ?',
         roomId: 'hjfdshfuerjk',
       },
-    ];
+    ]; */
     this.chatService.setUserOnline(this.currentUser);
-    this.chatService.getUsersOnline().subscribe((data) => {
-      this.userOnlineArray = data.filter(
-        (user) => user.id !== this.currentUser.id
-      );
+    this.chatService.getUsersOnline().subscribe({
+      next: (data) => {
+        this.userOnlineArray = data.filter(
+          (user) => user.id !== this.currentUser.id
+        );
+      },
+      complete: () => {},
     });
     this.chatService.setRoom().subscribe((data) => {
       this.rooms.push(data);
       if (data.users.currentUser.id === this.currentUser.id) {
         this.setCurrentRoom(data);
+        this.scrollToBottom();
       }
     });
     this.chatService.getMessage().subscribe((data) => {
@@ -124,10 +129,6 @@ export class ChatComponent implements OnInit {
         )[0].messages;
       }
       this.scrollToBottom();
-
-      console.log('message array', this.messageArray);
-      console.log('update room', updateRooms);
-      console.log('rooms: ', this.rooms);
     });
   }
 
@@ -139,13 +140,22 @@ export class ChatComponent implements OnInit {
     let container = document.querySelector(
       '.messages-container'
     ) as HTMLElement;
-    console.log(container.scrollHeight);
-    container.scrollTo(0, container.scrollHeight + 100);
+    if (container) {
+      setTimeout(() => container.scrollTo(0, container.scrollHeight), 50);
+    }
   }
 
   setCurrentUser() {
     this.currentUser =
       users[Math.floor(Math.random() * (users.length - 1 - 0 + 1) + 0)];
+  }
+
+  setUserIsWriting() {
+    if (this.message) {
+      console.log(`${this.currentUser.name} est en train d'écrire`);
+    } else {
+      console.log(`${this.currentUser.name} n'est plus en train d'écrire`);
+    }
   }
 
   setCurrentRoom(room: Room) {
@@ -169,6 +179,7 @@ export class ChatComponent implements OnInit {
     };
     this.chatService.sendMessage(data);
     this.message = '';
+    this.writingUser = undefined;
   }
 
   setUserDisconnect(user: ChatUser) {

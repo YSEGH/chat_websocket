@@ -33,8 +33,8 @@
     </div>
   </div>
 
-  <div class="room-discussion">
-    <div class="messages-container">
+  <div class="room-discussion {{ currentRoom ? '' : 'empty' }}">
+    <div class="messages-container" *ngIf="currentRoom">
       <div
         class="message {{ item.id === currentUser.id ? 'end' : 'start' }}"
         *ngFor="let item of messageArray"
@@ -58,6 +58,7 @@
         type="text"
         [(ngModel)]="message"
         (keyup)="$event.keyCode == 13 && sendMessage()"
+        (ngModelChange)="setUserIsWriting()"
       />
       <button (click)="sendMessage()">
         <svg
@@ -76,6 +77,8 @@
         </svg>
       </button>
     </div>
-    <ng-template #elseblock>Il n'y a rien à afficher</ng-template>
+    <ng-template #elseblock
+      ><h4 class="empty-room">Il n'y a rien à afficher</h4>
+    </ng-template>
   </div>
 </div>

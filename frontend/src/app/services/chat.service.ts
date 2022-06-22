@@ -27,6 +27,10 @@ export class ChatService {
     this.socket.emit('create room', data);
   }
 
+  setUserIsWriting(user: ChatUser) {
+    this.socket.emit('user is writing', user);
+  }
+
   setRoom(): Observable<Room> {
     return new Observable<Room>((observer) => {
       this.socket.on('room created', (data) => {

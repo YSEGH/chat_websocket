@@ -36,6 +36,7 @@
   margin-bottom: 0.5rem;
   outline: none;
   transition: 0.25s;
+  font-weight: 200;
 }
 .chat .chat-details .users-container input::placeholder {
   color: var(--ombre-block);
@@ -116,13 +117,19 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 2rem;
+  position: relative;
+}
+.chat .room-discussion.empty {
+  justify-content: center;
+  align-items: center;
 }
 .chat .room-discussion .messages-container {
-  padding: 2rem 0;
-  height: 100%;
+  padding: 0 2rem 0 2rem;
+
+  flex: auto;
   display: flex;
   flex-direction: column;
+  max-height: calc(100vh - 7rem);
   overflow-y: scroll;
 }
 .chat .room-discussion .messages-container .message {
@@ -191,18 +198,26 @@
 
 .chat .room-discussion .input-container {
   margin-left: auto;
-  width: 90%;
+  height: 7rem;
+  width: 100%;
   display: flex;
-  border-radius: 40px;
-  overflow: hidden;
+  background-color: none;
+  padding: 2rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
 .chat .room-discussion .input-container input {
   flex: auto;
   height: 3rem;
+  width: 90%;
   border: none;
   background-color: var(--lightgrey);
   padding: 0 2rem;
   outline: none;
+  border-top-left-radius: 40px;
+  border-bottom-left-radius: 40px;
+  font-weight: 200;
 }
 .chat .room-discussion .input-container button {
   width: 3rem;
@@ -213,7 +228,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-top-right-radius: 40px;
+  border-bottom-right-radius: 40px;
 }
 .chat .room-discussion .input-container button svg path {
   fill: #fff;
+}
+.chat .room-discussion .empty-room {
+  font-weight: 200;
 }
