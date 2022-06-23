@@ -1,4 +1,5 @@
 import { Component, OnInit, SimpleChanges } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ChatUser } from 'src/app/models/chat-user';
 import { Message } from 'src/app/models/message';
 import { Room } from 'src/app/models/room';
@@ -15,90 +16,30 @@ let users: { id: string; name: string }[] = [
   styleUrls: ['./chat.component.css'],
 })
 export class ChatComponent implements OnInit {
+  public isConnect: boolean = false;
+  public createGroup: boolean = false;
   public currentRoom!: Room;
   public rooms: Room[] = [];
-  public userOnlineArray: ChatUser[] = [];
+  public userOnlineArray$!: ChatUser[];
+  public selectedUsers: ChatUser[] = [];
   public currentUser: ChatUser = { id: '', name: '' };
   public message: string = '';
   public messageArray: Message[] = [];
-  public writingUser?: ChatUser;
+  public writingUser!: ChatUser | undefined;
+  public displayListUser: boolean = false;
+  public filteredList: ChatUser[] = [];
+  public listFilter: string = '';
 
   constructor(private chatService: ChatService) {}
 
   ngOnInit(): void {
-    this.setCurrentUser();
-    /* this.messageArray = [
-      {
-        id: this.currentUser.id,
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: this.currentUser.id,
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: this.currentUser.id,
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: 'this.currentUser.id',
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: this.currentUser.id,
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: 'this.currentUser.id',
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: 'this.currentUser.id',
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: this.currentUser.id,
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: this.currentUser.id,
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-      {
-        id: this.currentUser.id,
-        name: this.currentUser.name,
-        message: 'Hey, comment vas tu ?',
-        roomId: 'hjfdshfuerjk',
-      },
-    ]; */
-    this.chatService.setUserOnline(this.currentUser);
-    this.chatService.getUsersOnline().subscribe({
-      next: (data) => {
-        this.userOnlineArray = data.filter(
-          (user) => user.id !== this.currentUser.id
-        );
-      },
-      complete: () => {},
+    this.currentUser = users[0];
+
+    this.chatService.getUsersOnline(this.currentUser.id).subscribe((data) => {
+      this.userOnlineArray$ = data;
+      this.setFilteredListHandler(data);
     });
-    this.chatService.setRoom().subscribe((data) => {
+    this.chatService.getRooms().subscribe((data) => {
       this.rooms.push(data);
       if (data.users.currentUser.id === this.currentUser.id) {
         this.setCurrentRoom(data);
@@ -106,7 +47,7 @@ export class ChatComponent implements OnInit {
       }
     });
     this.chatService.getMessage().subscribe((data) => {
-      let updateRooms = this.rooms.map((room) =>
+      this.rooms = this.rooms.map((room) =>
         room.roomId === data.roomId
           ? {
               ...room,
@@ -122,7 +63,6 @@ export class ChatComponent implements OnInit {
             }
           : room
       );
-      this.rooms = updateRooms;
       if (data.roomId === this.currentRoom.roomId) {
         this.messageArray = this.rooms.filter(
           (room) => room.roomId === data.roomId
@@ -130,6 +70,9 @@ export class ChatComponent implements OnInit {
       }
       this.scrollToBottom();
     });
+    this.chatService
+      .getUserIsWriting()
+      .subscribe((data) => (this.writingUser = data));
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -145,17 +88,33 @@ export class ChatComponent implements OnInit {
     }
   }
 
-  setCurrentUser() {
-    this.currentUser =
-      users[Math.floor(Math.random() * (users.length - 1 - 0 + 1) + 0)];
+  setUserConnectHandler() {
+    this.chatService.setUserOnline(this.currentUser);
+    this.isConnect = true;
   }
 
-  setUserIsWriting() {
+  setUserDisconnectHandler() {
+    this.isConnect = false;
+    this.chatService.setUserDisconnect(this.currentUser);
+  }
+
+  addUserHandler(user: ChatUser) {
+    this.selectedUsers.push(user);
+    console.log(this.selectedUsers);
+  }
+
+  setUserIsWritingHandler() {
     if (this.message) {
-      console.log(`${this.currentUser.name} est en train d'écrire`);
+      this.chatService.setUserIsWriting(this.currentUser, this.currentRoom);
     } else {
-      console.log(`${this.currentUser.name} n'est plus en train d'écrire`);
+      this.chatService.setUserIsWriting(undefined, this.currentRoom);
     }
+  }
+
+  setFilteredListHandler(userList: ChatUser[]) {
+    this.filteredList = userList.filter((user) =>
+      user.name.toLowerCase().includes(this.listFilter.toLowerCase())
+    );
   }
 
   setCurrentRoom(room: Room) {
@@ -178,11 +137,25 @@ export class ChatComponent implements OnInit {
       roomId: this.currentRoom.roomId,
     };
     this.chatService.sendMessage(data);
+    this.chatService.setUserIsWriting(undefined, this.currentRoom);
     this.message = '';
-    this.writingUser = undefined;
   }
 
   setUserDisconnect(user: ChatUser) {
     this.chatService.setUserDisconnect(user);
+  }
+
+  displayListUserHandler(close: boolean = false) {
+    if (!this.displayListUser && this.createGroup) {
+      this.createGroup = false;
+    }
+    this.displayListUser = !this.displayListUser;
+  }
+
+  displayGroupInputHandler() {
+    if (!this.displayListUser) {
+      this.displayListUserHandler();
+    }
+    this.createGroup = !this.createGroup;
   }
 }

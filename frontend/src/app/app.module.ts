@@ -4,9 +4,10 @@ import { FormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
 import { ChatComponent } from './components/chat/chat.component';
+import { ChatuserComponent } from './components/chatuser/chatuser.component';
 
 @NgModule({
-  declarations: [AppComponent, ChatComponent],
+  declarations: [AppComponent, ChatComponent, ChatuserComponent],
   imports: [BrowserModule, FormsModule],
   providers: [],
   bootstrap: [AppComponent],

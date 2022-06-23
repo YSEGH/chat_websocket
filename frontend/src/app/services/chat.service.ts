@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { filter, map, Observable } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { ChatUser } from '../models/chat-user';
 import { Message } from '../models/message';
@@ -18,6 +18,13 @@ export class ChatService {
   setUserOnline(user: ChatUser) {
     this.socket.emit('user connected', user);
   }
+  getUsersOnline(currentUserId: string): Observable<ChatUser[]> {
+    return new Observable<ChatUser[]>((observer) => {
+      this.socket.on('get users online', (data) => {
+        observer.next(data);
+      });
+    }).pipe(map((data) => data.filter((user) => user.id !== currentUserId)));
+  }
 
   setUserDisconnect(user: ChatUser) {
     this.socket.emit('user disconnected', user);
@@ -27,21 +34,21 @@ export class ChatService {
     this.socket.emit('create room', data);
   }
 
-  setUserIsWriting(user: ChatUser) {
-    this.socket.emit('user is writing', user);
+  setUserIsWriting(user: ChatUser | undefined, room: Room) {
+    this.socket.emit('user is writing', { user: user, room: room });
   }
 
-  setRoom(): Observable<Room> {
-    return new Observable<Room>((observer) => {
-      this.socket.on('room created', (data) => {
+  getUserIsWriting(): Observable<ChatUser> {
+    return new Observable<ChatUser>((observer) => {
+      this.socket.on('user is writing', (data) => {
         observer.next(data);
       });
     });
   }
 
-  getUsersOnline(): Observable<ChatUser[]> {
-    return new Observable<ChatUser[]>((observer) => {
-      this.socket.on('get users online', (data) => {
+  getRooms(): Observable<Room> {
+    return new Observable<Room>((observer) => {
+      this.socket.on('room created', (data) => {
         observer.next(data);
       });
     });

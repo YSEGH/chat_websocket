@@ -1,25 +1,36 @@
 .chat {
   height: 100vh;
-
   width: 100vw;
   display: flex;
 }
 .chat .chat-details {
   display: flex;
+  transition: 0.5s;
+}
+.chat .chat-details.show {
+  width: 36rem;
+}
+.chat .chat-details.hide {
+  width: 18rem;
 }
 .chat .chat-details .users-container,
-.chat .chat-details .rooms-container {
+.chat .chat-details .rooms-details {
+  width: 18rem;
   display: flex;
   flex-direction: column;
   background-color: var(--lightgrey);
+  position: relative;
+  box-shadow: inset -5px 0px 15px -5px rgba(157, 157, 157, 0.35);
 }
 .chat .chat-details .users-container {
   align-items: center;
   justify-content: flex-start;
-  width: 18rem;
+  height: 100vh;
   max-height: 100vh;
-  position: relative;
-  box-shadow: inset -5px 0px 15px -5px rgba(157, 157, 157, 0.35);
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 .chat .chat-details .users-container .filter-container {
   height: 4rem;
@@ -60,30 +71,95 @@
   top: 0;
   left: 0;
 }
-.chat .chat-details .users-container .user-list .user {
+.chat .chat-details .users-container .user-list.empty {
+  justify-content: center;
+  align-items: center;
+}
+.chat .chat-details .users-container .user-list.empty h4 {
+  font-weight: 200;
+}
+
+/* room-details */
+.chat .chat-details .rooms-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  transition: 0.5s;
+}
+.chat .chat-details.show .rooms-details {
+  transform: translateX(18rem);
+}
+.chat .chat-details .rooms-details .user-disconnect {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.chat .chat-details .rooms-details .user-disconnect button {
+  padding: 0.5rem 1rem;
+  background-color: #2d8bec;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.25s;
+}
+.chat .chat-details .rooms-details .user-disconnect button:hover {
+  background-color: #0b6dce;
+}
+/* infos-container */
+.chat .chat-details .rooms-details .infos-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.chat .chat-details .rooms-details .infos-container h3 {
+  margin: 0;
+  text-transform: capitalize;
+  font-weight: 400;
+}
+.chat .chat-details .rooms-details .infos-container button {
+  cursor: pointer;
+}
+/* end--infos-container */
+/* rooms-container */
+.chat .chat-details .rooms-details .rooms-container {
+  flex: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow-y: scroll;
+}
+/* room */
+.chat .chat-details .rooms-details .room {
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   width: 100%;
   padding: 0.5rem;
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
+  border-radius: 20px;
   transition: 0.25s;
+  background-color: rgba(211, 211, 211, 0.3);
 }
-.chat .chat-details .users-container .user-list .user:hover {
+.chat .chat-details .rooms-details .room:hover,
+.chat .chat-details .rooms-details .room.toggle {
   background-color: #fff;
 }
-.chat .chat-details .users-container .user-list .user:nth-child(1) {
+.chat .chat-details .rooms-details .room:nth-child(1) {
   margin: 0rem;
 }
-.chat .chat-details .users-container .user-list .user img {
+.chat .chat-details .rooms-details .room img {
   height: 2.5rem;
   width: 2.5rem;
   object-fit: cover;
   border-radius: 50%;
 }
-.chat .chat-details .users-container .user-list .user h4 {
+.chat .chat-details .rooms-details .room h4 {
   width: 8rem;
   margin: 0;
   margin-left: 1rem;
@@ -94,29 +170,47 @@
   font-size: 14px;
   text-transform: capitalize;
 }
-.chat .chat-details .users-container .user-list .user span {
-  font-weight: 100;
-  font-size: 12px;
+/* end--room */
+/* button-container */
+.chat .chat-details .rooms-details .button-container {
+  display: flex;
 }
-.chat .chat-details .rooms-container span {
+.chat .chat-details .rooms-details .button-container button {
+  background-color: #2d8bec;
+  border: none;
+  height: 2.5rem;
+  width: 2.5rem;
+  padding: 0.65rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 1rem;
+  margin-right: 1rem;
   cursor: pointer;
-  height: 4rem;
-  width: 4rem;
-  color: #fff;
-  border-radius: 50%;
-  overflow: hidden;
-  background-color: lightcyan;
+  border-radius: 2px;
+  transition: 0.25s;
 }
-/* Room conversation */
+.chat .chat-details .rooms-details .button-container button:hover,
+.chat .chat-details .rooms-details .button-container button.active {
+  background-color: #0b6dce;
+}
+.chat .chat-details .rooms-details .button-container button svg path {
+  fill: #fff;
+}
+.chat .chat-details .rooms-details .button-container p {
+  margin-left: auto;
+  font-weight: 200;
+  font-size: 12px;
+  align-self: flex-end;
+  margin-bottom: 0;
+  color: var(--ombre-block);
+}
+/* end--button-container */
+/* room-conversation */
 .chat .room-discussion {
   flex: auto;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
   position: relative;
 }
 .chat .room-discussion.empty {
@@ -125,21 +219,22 @@
 }
 .chat .room-discussion .messages-container {
   padding: 0 2rem 0 2rem;
-
   flex: auto;
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 7rem);
   overflow-y: scroll;
+  position: relative;
 }
+
 .chat .room-discussion .messages-container .message {
   width: 100%;
   display: flex;
   align-items: center;
   margin-top: 1rem;
 }
-.chat .room-discussion .messages-container .message:last-child {
-  margin-bottom: auto;
+.chat .room-discussion .messages-container .message:first-child {
+  margin-top: auto;
 }
 .chat .room-discussion .messages-container .message.start {
   align-self: flex-start;
@@ -198,18 +293,26 @@
 
 .chat .room-discussion .input-container {
   margin-left: auto;
-  height: 7rem;
+  height: 5rem;
   width: 100%;
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
   background-color: none;
   padding: 2rem;
+  position: relative;
+}
+.chat .room-discussion .input-container .user-is-writing {
   position: absolute;
-  bottom: 0;
-  left: 0;
+  top: -0.75rem;
+  left: 3rem;
+  font-weight: 200;
+  font-size: 14px;
+  color: var(--ombre-block);
 }
 .chat .room-discussion .input-container input {
   flex: auto;
-  height: 3rem;
+  height: 2rem;
   width: 90%;
   border: none;
   background-color: var(--lightgrey);
@@ -220,8 +323,8 @@
   font-weight: 200;
 }
 .chat .room-discussion .input-container button {
-  width: 3rem;
-  height: 3rem;
+  width: 2rem;
+  height: 2rem;
   border: none;
   background-color: #2d8bec;
   cursor: pointer;
@@ -230,10 +333,108 @@
   justify-content: center;
   border-top-right-radius: 40px;
   border-bottom-right-radius: 40px;
+
+  transition: 0.25s;
+}
+.chat .room-discussion .input-container button:hover {
+  background-color: #0b6dce;
 }
 .chat .room-discussion .input-container button svg path {
   fill: #fff;
 }
 .chat .room-discussion .empty-room {
   font-weight: 200;
+}
+/* Modal */
+.modal-overlay {
+  height: 100vh;
+  width: calc(100vw - 18rem);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(32, 32, 32, 0.473);
+}
+.modal-overlay .modal {
+  height: 22rem;
+  width: 18rem;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 1rem;
+  overflow: hidden;
+}
+.modal-overlay .modal .input-container {
+  height: 4rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.modal-overlay .modal .input-container h4 {
+  font-weight: 200;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  align-self: flex-start;
+}
+.modal-overlay .modal .input-container input {
+  height: 2rem;
+  width: 100%;
+  border: none;
+  background-color: var(--lightgrey);
+  padding: 0 2rem;
+  outline: none;
+  border-radius: 40px;
+  font-weight: 200;
+}
+.modal-overlay .modal .user-container {
+  height: 13rem;
+  max-height: 13rem;
+  overflow-y: scroll;
+  padding: 1rem 0;
+}
+
+.modal-overlay .modal .button-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 3rem;
+  width: 100%;
+}
+.modal-overlay .modal .button-container button {
+  height: 2rem;
+  width: 45%;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.25s;
+}
+.modal-overlay .modal .button-container button svg {
+  width: 2rem;
+}
+.modal-overlay .modal .button-container button svg path {
+  fill: #fff;
+}
+.modal-overlay .modal .button-container button.validate:hover {
+  background-color: #83c715;
+}
+.modal-overlay .modal .button-container button.validate {
+  background-color: #96e616;
+}
+.modal-overlay .modal .button-container button.cancel {
+  background-color: #ee591e;
+}
+.modal-overlay .modal .button-container button.cancel:hover {
+  background-color: #ce440e;
+}
+/* Components */
+app-chatuser {
+  width: 100%;
 }

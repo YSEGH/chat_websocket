@@ -1,0 +1,74 @@
+.user {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+  padding: 0.5rem;
+  padding-left: 2rem;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  transition: 0.25s;
+  position: relative;
+}
+.user:hover {
+  background-color: #fff;
+}
+.user:nth-child(1) {
+  margin: 0rem;
+}
+.user img {
+  height: 2.5rem;
+  width: 2.5rem;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.user h4 {
+  width: 8rem;
+  margin: 0;
+  margin-left: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 300;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+.user span {
+  font-weight: 100;
+  font-size: 12px;
+}
+.user .input-checkbox {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  right: 1rem;
+  cursor: pointer;
+  height: 1.5rem;
+  width: 1.5rem;
+  background-color: #fff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user .input-checkbox svg {
+  height: 1.5rem;
+  width: 1.5rem;
+  border-radius: 4px;
+  transition: 0.25s;
+}
+.user .input-checkbox svg path {
+  fill: #fff;
+  pointer-events: none;
+}
+.user .input-checkbox:hover svg {
+  background-color: #96e6162f;
+}
+.user .input-checkbox.toggle svg {
+  background-color: #96e616;
+}
+.user .input-checkbox.toggle:hover svg {
+  background-color: #96e616a2;
+}

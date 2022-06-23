@@ -21,6 +21,11 @@ io.on("connection", (socket) => {
     io.sockets.emit("get users online", users);
   });
 
+  socket.on("user disconnected", (data) => {
+    users = users.filter((user) => user.id !== data.id);
+    io.sockets.emit("get users online", users);
+  });
+
   socket.on("create room", (data) => {
     let selectedUserId = data.selectedUser.socketId;
     let selectedUserSocket = io.sockets.sockets.get(selectedUserId);
@@ -67,14 +72,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("user is writing", (data) => {
-    console.log(data);
-    io.to(data.roomId).emit("user", data);
-  });
-
-  socket.on("user disconnected", (data) => {
-    users = users.filter((user) => user.id !== data.id);
-    io.sockets.emit("get users online", users);
-    socket.disconnect();
+    socket.broadcast.to(data.room.roomId).emit("user is writing", data.user);
   });
 });
 
