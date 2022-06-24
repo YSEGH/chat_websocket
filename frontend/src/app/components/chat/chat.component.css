@@ -356,7 +356,7 @@
   background-color: rgba(32, 32, 32, 0.473);
 }
 .modal-overlay .modal {
-  height: 22rem;
+  height: fit-content;
   width: 18rem;
   position: absolute;
   top: 0;
@@ -401,14 +401,16 @@
 
 .modal-overlay .modal .button-container {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
-  height: 3rem;
+  height: fit-content;
   width: 100%;
+  padding-top: 1rem;
 }
 .modal-overlay .modal .button-container button {
   height: 2rem;
-  width: 45%;
+  width: 100%;
   cursor: pointer;
   border: none;
   display: flex;
@@ -422,17 +424,22 @@
 .modal-overlay .modal .button-container button svg path {
   fill: #fff;
 }
+
+.modal-overlay .modal .button-container button.validate {
+  background-color: #96e616;
+  margin-bottom: 1rem;
+}
 .modal-overlay .modal .button-container button.validate:hover {
   background-color: #83c715;
 }
-.modal-overlay .modal .button-container button.validate {
-  background-color: #96e616;
+.modal-overlay .modal .button-container a.cancel {
+  cursor: pointer;
+  color: var(--dark);
+  font-weight: 200;
+  font-size: 14px;
 }
-.modal-overlay .modal .button-container button.cancel {
-  background-color: #ee591e;
-}
-.modal-overlay .modal .button-container button.cancel:hover {
-  background-color: #ce440e;
+.modal-overlay .modal .button-container a.cancel:hover {
+  color: #d45924;
 }
 /* Components */
 app-chatuser {

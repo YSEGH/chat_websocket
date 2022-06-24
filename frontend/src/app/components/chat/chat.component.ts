@@ -17,18 +17,18 @@ let users: { id: string; name: string }[] = [
 })
 export class ChatComponent implements OnInit {
   public isConnect: boolean = false;
-  public createGroup: boolean = false;
+  public createGroupButton: boolean = false;
   public currentRoom!: Room;
   public rooms: Room[] = [];
-  public userOnlineArray$!: ChatUser[];
-  public selectedUsers: ChatUser[] = [];
+  public userOnlineArray: ChatUser[] = [];
+  public userOnlineFiltered: ChatUser[] = [];
+  public userSelectedForGroup: ChatUser[] = [];
   public currentUser: ChatUser = { id: '', name: '' };
   public message: string = '';
   public messageArray: Message[] = [];
   public writingUser!: ChatUser | undefined;
-  public displayListUser: boolean = false;
-  public userOnlineFiltered: ChatUser[] = [];
-  public listFilter: string = '';
+  public displayUserButton: boolean = false;
+  public filterInput: string = '';
 
   constructor(private chatService: ChatService) {}
 
@@ -36,7 +36,7 @@ export class ChatComponent implements OnInit {
     this.currentUser = users[0];
 
     this.chatService.getUsersOnline(this.currentUser.id).subscribe((data) => {
-      this.userOnlineArray$ = data;
+      this.userOnlineArray = data;
       this.setUserOnlineFilteredHandler(data);
     });
     this.chatService.getRooms().subscribe((data) => {
@@ -99,25 +99,14 @@ export class ChatComponent implements OnInit {
   }
 
   addUserHandler(userSelected: ChatUser) {
-    console.log(userSelected);
-
     let selected: boolean = false;
     if (!userSelected.selected) {
       selected = true;
-      this.selectedUsers.push({ ...userSelected, selected: selected });
+      this.userSelectedForGroup.push({ ...userSelected, selected: selected });
     }
     this.userOnlineFiltered = ([] as ChatUser[]).concat(
       this.userOnlineFiltered.map((user) =>
-        this.selectedUsers.some((elem) => {
-          if (elem.id === userSelected.id && user.id === elem.id) {
-            console.log(elem);
-          } else {
-            console.log('****************************');
-            console.log(elem.id);
-            console.log(userSelected.id);
-            console.log(user.id);
-          }
-
+        this.userSelectedForGroup.some((elem) => {
           return elem.id === userSelected.id && user.id === elem.id;
         })
           ? { ...user, selected: selected }
@@ -125,7 +114,7 @@ export class ChatComponent implements OnInit {
       )
     );
     if (userSelected.selected) {
-      this.selectedUsers = this.selectedUsers.filter(
+      this.userSelectedForGroup = this.userSelectedForGroup.filter(
         (user) => user.id !== userSelected.id
       );
     }
@@ -141,19 +130,19 @@ export class ChatComponent implements OnInit {
 
   setUserOnlineFilteredHandler(userList: ChatUser[]) {
     this.userOnlineFiltered = userList.filter((user) =>
-      user.name.toLowerCase().includes(this.listFilter.toLowerCase())
+      user.name.toLowerCase().includes(this.filterInput.toLowerCase())
     );
     this.userOnlineFiltered = ([] as ChatUser[]).concat(
       this.userOnlineFiltered.map((user) =>
-        this.selectedUsers.some((elem) => {
+        this.userSelectedForGroup.some((elem) => {
           return user.id === elem.id;
         })
           ? { ...user, selected: true }
           : user
       )
     );
-    this.selectedUsers = ([] as ChatUser[]).concat(
-      this.selectedUsers.filter((user) =>
+    this.userSelectedForGroup = ([] as ChatUser[]).concat(
+      this.userSelectedForGroup.filter((user) =>
         this.userOnlineFiltered.some((elem) => {
           return user.id === elem.id;
         })
@@ -189,17 +178,30 @@ export class ChatComponent implements OnInit {
     this.chatService.setUserDisconnect(user);
   }
 
-  displayListUserHandler(close: boolean = false) {
-    if (!this.displayListUser && this.createGroup) {
-      this.createGroup = false;
+  displayUserButtonHandler() {
+    if (!this.displayUserButton && this.createGroupButton) {
+      this.createGroupButton = false;
     }
-    this.displayListUser = !this.displayListUser;
+    this.displayUserButton = !this.displayUserButton;
   }
 
-  displayGroupInputHandler() {
-    if (!this.displayListUser) {
-      this.displayListUserHandler();
+  displayGroupInputHandler(e?: Event) {
+    if (e) {
+      let test = e?.target as HTMLElement;
+      if (test.className !== 'modal-overlay') {
+        return;
+      }
     }
-    this.createGroup = !this.createGroup;
+
+    if (!this.displayUserButton) {
+      this.displayUserButtonHandler();
+    }
+    this.userSelectedForGroup = [];
+    this.userOnlineFiltered = ([] as ChatUser[]).concat(
+      this.userOnlineFiltered.map((user) =>
+        user.selected ? { ...user, selected: false } : user
+      )
+    );
+    this.createGroupButton = !this.createGroupButton;
   }
 }

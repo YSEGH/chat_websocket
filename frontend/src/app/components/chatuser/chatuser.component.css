@@ -2,7 +2,6 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  cursor: pointer;
   width: 100%;
   padding: 0.5rem;
   padding-left: 2rem;
@@ -10,8 +9,12 @@
   border-bottom-right-radius: 20px;
   transition: 0.25s;
   position: relative;
+  user-select: none;
 }
-.user:hover {
+.user.hover {
+  cursor: pointer;
+}
+.user.hover:hover {
   background-color: #fff;
 }
 .user:nth-child(1) {

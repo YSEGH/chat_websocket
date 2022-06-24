@@ -1,4 +1,7 @@
-<div class="user" (click)="createRoom.emit(user)">
+<div
+  class="user {{ hoverEffect ? 'hover' : '' }}"
+  (click)="checkBox ? addUser.emit(this.user) : createRoom.emit(user)"
+>
   <img
     src="assets/avatar.png"
     alt="{{ user?.name }}"

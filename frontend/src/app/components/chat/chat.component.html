@@ -1,14 +1,14 @@
 <div class="chat">
   <div
-    class="chat-details {{ displayListUser && isConnect ? 'show' : 'hide' }}"
+    class="chat-details {{ displayUserButton && isConnect ? 'show' : 'hide' }}"
   >
     <div class="users-container">
       <div class="filter-container">
         <input
           type="text"
           placeholder="Rechercher..."
-          [(ngModel)]="listFilter"
-          (ngModelChange)="setUserOnlineFilteredHandler(userOnlineArray$)"
+          [(ngModel)]="filterInput"
+          (ngModelChange)="setUserOnlineFilteredHandler(userOnlineArray)"
         />
       </div>
       <div
@@ -17,14 +17,14 @@
         <ng-container *ngIf="userOnlineFiltered.length > 0; else noUserConnect">
           <app-chatuser
             *ngFor="let user of userOnlineFiltered"
-            (createRoom)="!createGroup && createRoom($event)"
-            [checkBox]="createGroup"
+            (createRoom)="!createGroupButton && createRoom($event)"
+            [checkBox]="createGroupButton"
             [user]="user"
             (addUser)="addUserHandler($event)"
           ></app-chatuser>
         </ng-container>
         <ng-template #noUserConnect>
-          <h4>Aucun utilisateur connecté</h4>
+          <h4>Aucun utilisateur</h4>
         </ng-template>
       </div>
     </div>
@@ -80,9 +80,9 @@
         </div>
         <div class="button-container">
           <button
-            class="contact {{ displayListUser ? 'active' : '' }}"
+            class="contact {{ displayUserButton ? 'active' : '' }}"
             title="Liste de contact(s)"
-            (click)="displayListUserHandler()"
+            (click)="displayUserButtonHandler()"
           >
             <svg
               width="24"
@@ -98,7 +98,7 @@
             </svg>
           </button>
           <button
-            class="create-groupe {{ createGroup ? 'active' : '' }}"
+            class="create-groupe {{ createGroupButton ? 'active' : '' }}"
             title="Créer un groupe"
             (click)="displayGroupInputHandler()"
           >
@@ -115,7 +115,7 @@
               />
             </svg>
           </button>
-          <p>En ligne : {{ userOnlineArray$?.length }}</p>
+          <p>En ligne : {{ userOnlineArray?.length }}</p>
         </div></ng-template
       >
     </div>
@@ -175,15 +175,19 @@
   </div>
 </div>
 
-<div class="modal-overlay" *ngIf="createGroup">
+<div
+  class="modal-overlay"
+  *ngIf="createGroupButton"
+  (click)="displayGroupInputHandler($event)"
+>
   <div class="modal">
     <div class="input-container">
       <h4>Nom du groupe</h4>
       <input type="text" />
     </div>
     <div class="user-container">
-      <div *ngFor="let user of selectedUsers">
-        <app-chatuser [user]="user"></app-chatuser>
+      <div *ngFor="let user of userSelectedForGroup">
+        <app-chatuser [user]="user" [hoverEffect]="false"></app-chatuser>
       </div>
     </div>
     <div class="button-container">
@@ -203,28 +207,9 @@
           />
         </svg>
       </button>
-      <button class="cancel" title="Annuler">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M8.46445 15.5354L15.5355 8.46436"
-            stroke="#fff"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-          <path
-            d="M8.46446 8.46458L15.5355 15.5356"
-            stroke="#fff"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-        </svg>
-      </button>
+      <a class="cancel" title="Annuler" (click)="displayGroupInputHandler()">
+        Annuler
+      </a>
     </div>
   </div>
 </div>
