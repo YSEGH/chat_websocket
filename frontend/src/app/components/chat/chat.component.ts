@@ -1,5 +1,4 @@
 import { Component, OnInit, SimpleChanges } from '@angular/core';
-import { Observable } from 'rxjs';
 import { ChatUser } from 'src/app/models/chat-user';
 import { Message } from 'src/app/models/message';
 import { Room } from 'src/app/models/room';
@@ -18,12 +17,12 @@ let users: { id: string; name: string }[] = [
 export class ChatComponent implements OnInit {
   public isConnect: boolean = false;
   public createGroupButton: boolean = false;
+  public currentUser: ChatUser = { id: '', name: '' };
   public currentRoom!: Room;
   public rooms: Room[] = [];
   public userOnlineArray: ChatUser[] = [];
   public userOnlineFiltered: ChatUser[] = [];
   public userSelectedForGroup: ChatUser[] = [];
-  public currentUser: ChatUser = { id: '', name: '' };
   public message: string = '';
   public messageArray: Message[] = [];
   public writingUser!: ChatUser | undefined;
@@ -34,17 +33,17 @@ export class ChatComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = users[0];
-
     this.chatService.getUsersOnline(this.currentUser.id).subscribe((data) => {
       this.userOnlineArray = data;
       this.setUserOnlineFilteredHandler(data);
     });
     this.chatService.getRooms().subscribe((data) => {
       this.rooms.push(data);
-      if (data.users.currentUser.id === this.currentUser.id) {
+      if (data.createdBy.id === this.currentUser.id) {
         this.setCurrentRoom(data);
         this.scrollToBottom();
       }
+      console.log(this.rooms);
     });
     this.chatService.getMessage().subscribe((data) => {
       this.rooms = this.rooms.map((room) =>
@@ -154,12 +153,19 @@ export class ChatComponent implements OnInit {
     this.scrollToBottom();
     this.currentRoom = this.rooms.filter((x) => x.roomId === room.roomId)[0];
     this.messageArray = this.currentRoom.messages;
+    console.log(this.currentRoom);
   }
 
-  createRoom(selectedUser: ChatUser) {
+  createRoom(
+    selectedUsers: ChatUser[],
+    isGroup: boolean = false,
+    groupName?: string
+  ) {
+    selectedUsers.push(this.currentUser);
     this.chatService.createRoom({
-      currentUser: this.currentUser,
-      selectedUser: selectedUser,
+      users: selectedUsers,
+      isGroup: isGroup,
+      groupName: groupName,
     });
   }
   sendMessage() {
@@ -192,7 +198,6 @@ export class ChatComponent implements OnInit {
         return;
       }
     }
-
     if (!this.displayUserButton) {
       this.displayUserButtonHandler();
     }

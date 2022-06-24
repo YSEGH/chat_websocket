@@ -11,7 +11,6 @@ let users = [];
 
 io.on("connection", (socket) => {
   socket.on("user connected", (data) => {
-    console.log(socket.id);
     let user = {
       id: data.id,
       name: data.name,
@@ -27,7 +26,60 @@ io.on("connection", (socket) => {
   });
 
   socket.on("create room", (data) => {
-    let selectedUserId = data.selectedUser.socketId;
+    let currentUserId = socket.id;
+    let selectedUserId;
+    let selectedUserSocket;
+    let room;
+    console.log(data);
+
+    if (!data.isGroup) {
+      selectedUserId = data.users[0].socketId;
+      selectedUserSocket = io.sockets.sockets.get(selectedUserId);
+      room = `${selectedUserId}-${currentUserId}`;
+
+      if (selectedUserSocket) {
+        if (
+          io.sockets.adapter.rooms.has(`${selectedUserId}-${currentUserId}`) ||
+          io.sockets.adapter.rooms.has(`${currentUserId}-${selectedUserId}`)
+        ) {
+          console.log("La salle existe déjà");
+        } else {
+          console.log(`Vous ouvrez une discussion avec ${data.users[0].name}`);
+
+          socket.join(room);
+          selectedUserSocket.join(room);
+
+          io.to(room).emit("room created", {
+            roomId: room,
+            users: [
+              {
+                id: data.users[0].id,
+                name: data.users[0].name,
+                socketId: selectedUserId,
+              },
+              {
+                id: data.users[1].id,
+                name: data.users[1].name,
+                socketId: currentUserId,
+              },
+            ],
+            messages: [],
+            createdBy: {
+              id: data.users[1].id,
+              name: data.users[1].name,
+              socketId: currentUserId,
+            },
+          });
+        }
+      }
+    } else {
+      for (let i = 0; i < data.users.length - 2; i++) {
+        const user = data.users[i];
+        console.log(user);
+      }
+    }
+
+    /* let selectedUserId = data.selectedUser.socketId;
     let selectedUserSocket = io.sockets.sockets.get(selectedUserId);
     let currentUserId = socket.id;
     let room = `${selectedUserId}-${currentUserId}`;
@@ -64,7 +116,7 @@ io.on("connection", (socket) => {
       }
     } else {
       console.log("L'utilisateur est déconnecté.");
-    }
+    } */
   });
 
   socket.on("send message", (data) => {

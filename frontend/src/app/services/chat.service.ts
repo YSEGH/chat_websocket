@@ -30,9 +30,15 @@ export class ChatService {
     this.socket.emit('user disconnected', user);
   }
 
-  createRoom(data: {}) {
+  createRoom(data: {
+    users: ChatUser[];
+    isGroup: boolean;
+    groupName?: string;
+  }) {
     this.socket.emit('create room', data);
   }
+
+  createRoomTest(users: ChatUser[]) {}
 
   setUserIsWriting(user: ChatUser | undefined, room: Room) {
     this.socket.emit('user is writing', { user: user, room: room });

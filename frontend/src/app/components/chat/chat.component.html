@@ -34,49 +34,25 @@
           Connexion
         </button>
       </div>
-      <ng-template #displayRoomsDetails
-        ><div class="infos-container">
+      <ng-template #displayRoomsDetails>
+        <div class="infos-container">
           <h3>{{ currentUser.name }}</h3>
           <button (click)="setUserDisconnectHandler()" class="disconnect">
             Déconnexion
           </button>
         </div>
         <div class="rooms-container">
-          <div
-            *ngFor="let room of rooms"
-            class="room {{
-              currentRoom && currentRoom.roomId === room.roomId ? 'toggle' : ''
-            }}"
-            (click)="setCurrentRoom(room)"
-          >
-            <img
-              src="assets/avatar.png"
-              alt="{{
-                room.users.currentUser.id === currentUser.id
-                  ? room.users.selectedUser.name
-                  : room.users.currentUser.name
-              }}"
-              title="{{
-                room.users.currentUser.id === currentUser.id
-                  ? room.users.selectedUser.name
-                  : room.users.currentUser.name
-              }}"
-            />
-            <h4
-              title="{{
-                room.users.currentUser.id === currentUser.id
-                  ? room.users.selectedUser.name
-                  : room.users.currentUser.name
-              }}"
-            >
-              {{
-                room.users.currentUser.id === currentUser.id
-                  ? room.users.selectedUser.name
-                  : room.users.currentUser.name
-              }}
-              <br />
-            </h4>
-          </div>
+          <ng-container *ngIf="rooms.length > 0; else noRoom">
+            <app-chatroom
+              *ngFor="let room of rooms"
+              [room]="room"
+              [active]="currentRoom && currentRoom.roomId === room.roomId"
+              (setCurrentRoom)="setCurrentRoom($event)"
+            ></app-chatroom>
+          </ng-container>
+          <ng-template #noRoom>
+            <h4>Aucune salle</h4>
+          </ng-template>
         </div>
         <div class="button-container">
           <button

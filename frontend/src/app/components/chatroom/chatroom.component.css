@@ -1,0 +1,37 @@
+/* room */
+.room {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 20px;
+  transition: 0.25s;
+  background-color: rgba(211, 211, 211, 0.3);
+}
+.room:hover,
+.room.toggle {
+  background-color: #fff;
+}
+.room:nth-child(1) {
+  margin: 0rem;
+}
+.room img {
+  height: 2.5rem;
+  width: 2.5rem;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.room h4 {
+  width: 8rem;
+  margin: 0;
+  margin-left: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 300;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+/* end--room */

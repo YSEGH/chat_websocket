@@ -3,9 +3,9 @@ import { Message } from './message';
 
 export interface Room {
   roomId: string;
-  users: {
-    currentUser: ChatUser;
-    selectedUser: ChatUser;
-  };
+  users: ChatUser[];
   messages: Message[];
+  isGroup?: boolean;
+  groupName?: string;
+  createdBy: ChatUser;
 }
