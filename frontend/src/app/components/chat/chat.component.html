@@ -8,13 +8,15 @@
           type="text"
           placeholder="Rechercher..."
           [(ngModel)]="listFilter"
-          (ngModelChange)="setFilteredListHandler(userOnlineArray$)"
+          (ngModelChange)="setUserOnlineFilteredHandler(userOnlineArray$)"
         />
       </div>
-      <div class="user-list {{ filteredList.length == 0 ? 'empty' : '' }}">
-        <ng-container *ngIf="filteredList.length > 0; else noUserConnect">
+      <div
+        class="user-list {{ userOnlineFiltered.length == 0 ? 'empty' : '' }}"
+      >
+        <ng-container *ngIf="userOnlineFiltered.length > 0; else noUserConnect">
           <app-chatuser
-            *ngFor="let user of filteredList"
+            *ngFor="let user of userOnlineFiltered"
             (createRoom)="!createGroup && createRoom($event)"
             [checkBox]="createGroup"
             [user]="user"

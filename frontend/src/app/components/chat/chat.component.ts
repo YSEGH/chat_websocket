@@ -27,7 +27,7 @@ export class ChatComponent implements OnInit {
   public messageArray: Message[] = [];
   public writingUser!: ChatUser | undefined;
   public displayListUser: boolean = false;
-  public filteredList: ChatUser[] = [];
+  public userOnlineFiltered: ChatUser[] = [];
   public listFilter: string = '';
 
   constructor(private chatService: ChatService) {}
@@ -37,7 +37,7 @@ export class ChatComponent implements OnInit {
 
     this.chatService.getUsersOnline(this.currentUser.id).subscribe((data) => {
       this.userOnlineArray$ = data;
-      this.setFilteredListHandler(data);
+      this.setUserOnlineFilteredHandler(data);
     });
     this.chatService.getRooms().subscribe((data) => {
       this.rooms.push(data);
@@ -98,9 +98,37 @@ export class ChatComponent implements OnInit {
     this.chatService.setUserDisconnect(this.currentUser);
   }
 
-  addUserHandler(user: ChatUser) {
-    this.selectedUsers.push(user);
-    console.log(this.selectedUsers);
+  addUserHandler(userSelected: ChatUser) {
+    console.log(userSelected);
+
+    let selected: boolean = false;
+    if (!userSelected.selected) {
+      selected = true;
+      this.selectedUsers.push({ ...userSelected, selected: selected });
+    }
+    this.userOnlineFiltered = ([] as ChatUser[]).concat(
+      this.userOnlineFiltered.map((user) =>
+        this.selectedUsers.some((elem) => {
+          if (elem.id === userSelected.id && user.id === elem.id) {
+            console.log(elem);
+          } else {
+            console.log('****************************');
+            console.log(elem.id);
+            console.log(userSelected.id);
+            console.log(user.id);
+          }
+
+          return elem.id === userSelected.id && user.id === elem.id;
+        })
+          ? { ...user, selected: selected }
+          : user
+      )
+    );
+    if (userSelected.selected) {
+      this.selectedUsers = this.selectedUsers.filter(
+        (user) => user.id !== userSelected.id
+      );
+    }
   }
 
   setUserIsWritingHandler() {
@@ -111,9 +139,25 @@ export class ChatComponent implements OnInit {
     }
   }
 
-  setFilteredListHandler(userList: ChatUser[]) {
-    this.filteredList = userList.filter((user) =>
+  setUserOnlineFilteredHandler(userList: ChatUser[]) {
+    this.userOnlineFiltered = userList.filter((user) =>
       user.name.toLowerCase().includes(this.listFilter.toLowerCase())
+    );
+    this.userOnlineFiltered = ([] as ChatUser[]).concat(
+      this.userOnlineFiltered.map((user) =>
+        this.selectedUsers.some((elem) => {
+          return user.id === elem.id;
+        })
+          ? { ...user, selected: true }
+          : user
+      )
+    );
+    this.selectedUsers = ([] as ChatUser[]).concat(
+      this.selectedUsers.filter((user) =>
+        this.userOnlineFiltered.some((elem) => {
+          return user.id === elem.id;
+        })
+      )
     );
   }
 

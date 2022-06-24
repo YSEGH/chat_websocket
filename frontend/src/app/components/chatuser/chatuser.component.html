@@ -9,10 +9,10 @@
     <span>Software engineering</span>
   </h4>
   <div
-    class="input-checkbox"
+    class="input-checkbox {{ user?.selected ? 'toggle' : '' }}"
     *ngIf="checkBox"
     type="checkbox"
-    (click)="addUserHandler($event)"
+    (click)="addUser.emit(this.user)"
   >
     <svg
       width="24"

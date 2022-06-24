@@ -15,15 +15,4 @@ export class ChatuserComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {}
-
-  addUserHandler(e: Event) {
-    const svg = e.target as HTMLElement;
-    const input = svg.parentNode as HTMLElement;
-    if (input.classList.contains('toggle')) {
-      input.classList.remove('toggle');
-    } else {
-      input.classList.add('toggle');
-    }
-    this.addUser.emit(this.user);
-  }
 }
