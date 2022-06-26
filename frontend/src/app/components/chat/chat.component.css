@@ -134,24 +134,16 @@
   justify-content: flex-start;
   overflow-y: scroll;
 }
-
+.chat .chat-details .rooms-details .rooms-container.empty {
+  align-items: center;
+  justify-content: center;
+}
+.chat .chat-details .rooms-details .rooms-container.empty h4 {
+  font-weight: 200;
+}
 /* button-container */
 .chat .chat-details .rooms-details .button-container {
   display: flex;
-}
-.chat .chat-details .rooms-details .button-container button {
-  background-color: #2d8bec;
-  border: none;
-  height: 2.5rem;
-  width: 2.5rem;
-  padding: 0.65rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 1rem;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: 0.25s;
 }
 .chat .chat-details .rooms-details .button-container button:hover,
 .chat .chat-details .rooms-details .button-container button.active {
@@ -180,6 +172,44 @@
 .chat .room-discussion.empty {
   justify-content: center;
   align-items: center;
+}
+.chat .room-discussion .button-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: #fff;
+}
+.chat .room-discussion .button-container button {
+  margin-right: 0.5rem;
+  padding: 0 !important;
+}
+.chat .room-discussion .button-container button svg {
+  width: 2.5rem;
+}
+.chat .room-discussion .button-container button svg path {
+  fill: #fff;
+}
+.chat .room-discussion .button-container button.add-user {
+  background-color: #2d8bec;
+}
+.chat .room-discussion .button-container button.add-user:hover {
+  background-color: #0b6dce;
+}
+.chat .room-discussion .button-container button.leave-room {
+  background-color: #fff !important;
+}
+.chat .room-discussion .button-container button.leave-room svg path {
+  fill: var(--dark);
+}
+.chat .room-discussion .button-container button.leave-room:hover svg path {
+  fill: #d45924;
 }
 .chat .room-discussion .messages-container {
   padding: 0 2rem 0 2rem;
@@ -307,6 +337,7 @@
   fill: #fff;
 }
 .chat .room-discussion .empty-room {
+  margin: auto;
   font-weight: 200;
 }
 /* Modal */
@@ -317,6 +348,7 @@
   top: 0;
   bottom: 0;
   right: 0;
+  z-index: 1000;
   background-color: rgba(32, 32, 32, 0.473);
 }
 .modal-overlay .modal {
@@ -407,6 +439,7 @@
   color: #d45924;
 }
 /* Components */
-app-chatuser {
+app-chatuser,
+app-chatroom {
   width: 100%;
 }

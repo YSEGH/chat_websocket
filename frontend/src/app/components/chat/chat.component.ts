@@ -5,8 +5,8 @@ import { Room } from 'src/app/models/room';
 import { ChatService } from 'src/app/services/chat.service';
 import { v4 as uuidv4 } from 'uuid';
 
-let users: { id: string; name: string }[] = [
-  { id: uuidv4(), name: uuidv4().substring(0, 3) },
+let users: ChatUser[] = [
+  { id: uuidv4(), name: uuidv4().substring(0, 3), job: 'Software Engineering' },
 ];
 
 @Component({
@@ -17,8 +17,16 @@ let users: { id: string; name: string }[] = [
 export class ChatComponent implements OnInit {
   public isConnect: boolean = false;
   public createGroupButton: boolean = false;
-  public currentUser: ChatUser = { id: '', name: '' };
-  public currentRoom!: Room;
+  public createUserButton: boolean = false;
+  public currentUser: ChatUser = { id: '', name: '', job: '' };
+  public currentRoom!: Room /* = {
+    roomId: '',
+    users: [],
+    messages: [],
+    isGroup: false,
+    groupName: '',
+    createdBy: { id: '', name: '', job: '' },
+  } */;
   public rooms: Room[] = [];
   public userOnlineArray: ChatUser[] = [];
   public userOnlineFiltered: ChatUser[] = [];
@@ -28,14 +36,24 @@ export class ChatComponent implements OnInit {
   public writingUser!: ChatUser | undefined;
   public displayUserButton: boolean = false;
   public filterInput: string = '';
+  public groupNameInput: string = '';
 
   constructor(private chatService: ChatService) {}
-
+  /*  */
   ngOnInit(): void {
     this.currentUser = users[0];
+    this.setUserConnectHandler();
     this.chatService.getUsersOnline(this.currentUser.id).subscribe((data) => {
-      this.userOnlineArray = data;
-      this.setUserOnlineFilteredHandler(data);
+      /* On met à jour la nouvelle liste des utilisateurs en fonction de ceux déjà présents dans la liste des utilisateurs séléctionnés : this.userSelectedForGroup */
+      this.userOnlineArray = data.map((user) =>
+        this.userSelectedForGroup.some((elem) => {
+          return user.id === elem.id;
+        })
+          ? { ...user, selected: true }
+          : user
+      );
+      /* On filtre la liste des utilisateurs dès la réception pour filtrer en temps réél */
+      this.setUserOnlineFilteredHandler(this.userOnlineArray);
     });
     this.chatService.getRooms().subscribe((data) => {
       this.rooms.push(data);
@@ -43,7 +61,6 @@ export class ChatComponent implements OnInit {
         this.setCurrentRoom(data);
         this.scrollToBottom();
       }
-      console.log(this.rooms);
     });
     this.chatService.getMessage().subscribe((data) => {
       this.rooms = this.rooms.map((room) =>
@@ -69,6 +86,21 @@ export class ChatComponent implements OnInit {
       }
       this.scrollToBottom();
     });
+    this.chatService.getUpdateRoom().subscribe((data) => {
+      if (data) {
+        this.rooms = ([] as Room[]).concat(
+          this.rooms.map((room) =>
+            room.roomId === data.roomId ? (room = data) : room
+          )
+        );
+        if (!data.isGroup && data.users.length < 2) {
+          this.updateRoom('remove user', data, this.currentUser);
+        }
+      }
+      console.log(this.currentUser);
+
+      console.log(this.rooms);
+    });
     this.chatService
       .getUserIsWriting()
       .subscribe((data) => (this.writingUser = data));
@@ -83,7 +115,15 @@ export class ChatComponent implements OnInit {
       '.messages-container'
     ) as HTMLElement;
     if (container) {
-      setTimeout(() => container.scrollTo(0, container.scrollHeight), 50);
+      setTimeout(
+        () =>
+          container.scroll({
+            top: container.scrollHeight,
+            left: 0,
+            behavior: 'smooth',
+          }),
+        25
+      );
     }
   }
 
@@ -103,15 +143,21 @@ export class ChatComponent implements OnInit {
       selected = true;
       this.userSelectedForGroup.push({ ...userSelected, selected: selected });
     }
-    this.userOnlineFiltered = ([] as ChatUser[]).concat(
-      this.userOnlineFiltered.map((user) =>
-        this.userSelectedForGroup.some((elem) => {
-          return elem.id === userSelected.id && user.id === elem.id;
-        })
-          ? { ...user, selected: selected }
-          : user
+    /* On modifie le user dans le tableau général {...user, selected: selected} */
+    this.userOnlineArray = ([] as ChatUser[]).concat(
+      this.userOnlineArray.map((user) =>
+        user.id === userSelected.id ? { ...user, selected: selected } : user
       )
     );
+
+    /* On modifie le user dans le tableau filtré {...user, selected: selected} */
+    this.userOnlineFiltered = ([] as ChatUser[]).concat(
+      this.userOnlineFiltered.map((user) =>
+        user.id === userSelected.id ? { ...user, selected: selected } : user
+      )
+    );
+
+    /* Si'lutilisateur était déjà dans this.userSelectedForGroup on le retire */
     if (userSelected.selected) {
       this.userSelectedForGroup = this.userSelectedForGroup.filter(
         (user) => user.id !== userSelected.id
@@ -119,33 +165,14 @@ export class ChatComponent implements OnInit {
     }
   }
 
-  setUserIsWritingHandler() {
-    if (this.message) {
-      this.chatService.setUserIsWriting(this.currentUser, this.currentRoom);
-    } else {
-      this.chatService.setUserIsWriting(undefined, this.currentRoom);
-    }
-  }
-
   setUserOnlineFilteredHandler(userList: ChatUser[]) {
+    /* Filtration du tableau en fonction du filtre : this.filterInput */
     this.userOnlineFiltered = userList.filter((user) =>
       user.name.toLowerCase().includes(this.filterInput.toLowerCase())
     );
-    this.userOnlineFiltered = ([] as ChatUser[]).concat(
-      this.userOnlineFiltered.map((user) =>
-        this.userSelectedForGroup.some((elem) => {
-          return user.id === elem.id;
-        })
-          ? { ...user, selected: true }
-          : user
-      )
-    );
+    /* Pour que la liste des utilisateurs selectionnés soit mis à jour en cas de déconnexion d'un utilisateur */
     this.userSelectedForGroup = ([] as ChatUser[]).concat(
-      this.userSelectedForGroup.filter((user) =>
-        this.userOnlineFiltered.some((elem) => {
-          return user.id === elem.id;
-        })
-      )
+      userList.filter((user) => user.selected === true)
     );
   }
 
@@ -153,7 +180,6 @@ export class ChatComponent implements OnInit {
     this.scrollToBottom();
     this.currentRoom = this.rooms.filter((x) => x.roomId === room.roomId)[0];
     this.messageArray = this.currentRoom.messages;
-    console.log(this.currentRoom);
   }
 
   createRoom(
@@ -167,7 +193,36 @@ export class ChatComponent implements OnInit {
       isGroup: isGroup,
       groupName: groupName,
     });
+    if (isGroup) {
+      this.displayGroupInputHandler();
+    }
   }
+
+  updateRoom(
+    type: string,
+    room: Room,
+    user?: ChatUser,
+    users?: ChatUser[],
+    groupName?: string
+  ) {
+    if (type === 'remove user') {
+      this.rooms = ([] as Room[]).concat(
+        this.rooms.filter((x) => x.roomId !== room.roomId)
+      );
+      /*       this.currentRoom = undefined;
+       */
+    }
+    this.chatService.updateRoom({ type, room, user, users, groupName });
+  }
+
+  setUserIsWritingHandler() {
+    if (this.message) {
+      this.chatService.setUserIsWriting(this.currentUser, this.currentRoom);
+    } else {
+      this.chatService.setUserIsWriting(undefined, this.currentRoom);
+    }
+  }
+
   sendMessage() {
     let data = {
       id: this.currentUser.id,
@@ -191,7 +246,7 @@ export class ChatComponent implements OnInit {
     this.displayUserButton = !this.displayUserButton;
   }
 
-  displayGroupInputHandler(e?: Event) {
+  displayGroupInputHandler(e?: Event, room?: Room) {
     if (e) {
       let test = e?.target as HTMLElement;
       if (test.className !== 'modal-overlay') {
@@ -201,6 +256,7 @@ export class ChatComponent implements OnInit {
     if (!this.displayUserButton) {
       this.displayUserButtonHandler();
     }
+    this.groupNameInput = '';
     this.userSelectedForGroup = [];
     this.userOnlineFiltered = ([] as ChatUser[]).concat(
       this.userOnlineFiltered.map((user) =>

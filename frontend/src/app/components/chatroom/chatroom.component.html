@@ -1,23 +1,7 @@
 <div
   class="room {{ active ? 'toggle' : '' }}"
-  (click)="setCurrentRoom.emit(this.room)"
+  (click)="setCurrentRoom.emit(room)"
 >
-  <img src="assets/avatar.png" />
-  <h4>test</h4>
+  <img src="assets/avatar.png" [alt]="roomTitle" [title]="roomTitle" />
+  <h4>{{ roomTitle }}</h4>
 </div>
-<!-- 
-    <h4
-    title="{{
-      this.room?.users?.currentUser?.id === currentUser?.id
-        ? this.room?.users?.selectedUser?.name
-        : this.room?.users?.currentUser?.name
-    }}"
-  >
-    {{
-      this.room?.users?.currentUser?.id === currentUser?.id
-        ? this.room?.users?.selectedUser?.name
-        : this.room?.users?.currentUser?.name
-    }}
-    <br />
-  </h4>
- -->

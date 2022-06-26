@@ -14,9 +14,15 @@ io.on("connection", (socket) => {
     let user = {
       id: data.id,
       name: data.name,
+      job: data.job,
       socketId: socket.id,
     };
     users.push(user);
+    io.sockets.emit("get users online", users);
+  });
+
+  socket.conn.on("close", (reason) => {
+    users = users.filter((user) => user.socketId !== socket.id);
     io.sockets.emit("get users online", users);
   });
 
@@ -26,97 +32,101 @@ io.on("connection", (socket) => {
   });
 
   socket.on("create room", (data) => {
-    let currentUserId = socket.id;
-    let selectedUserId;
-    let selectedUserSocket;
-    let room;
-    console.log(data);
+    let userSocketId;
+    let userSocket;
+    let roomId;
+    let roomUsers = [];
 
+    /* On créé l'ID de la room */
     if (!data.isGroup) {
-      selectedUserId = data.users[0].socketId;
-      selectedUserSocket = io.sockets.sockets.get(selectedUserId);
-      room = `${selectedUserId}-${currentUserId}`;
-
-      if (selectedUserSocket) {
-        if (
-          io.sockets.adapter.rooms.has(`${selectedUserId}-${currentUserId}`) ||
-          io.sockets.adapter.rooms.has(`${currentUserId}-${selectedUserId}`)
-        ) {
-          console.log("La salle existe déjà");
-        } else {
-          console.log(`Vous ouvrez une discussion avec ${data.users[0].name}`);
-
-          socket.join(room);
-          selectedUserSocket.join(room);
-
-          io.to(room).emit("room created", {
-            roomId: room,
-            users: [
-              {
-                id: data.users[0].id,
-                name: data.users[0].name,
-                socketId: selectedUserId,
-              },
-              {
-                id: data.users[1].id,
-                name: data.users[1].name,
-                socketId: currentUserId,
-              },
-            ],
-            messages: [],
-            createdBy: {
-              id: data.users[1].id,
-              name: data.users[1].name,
-              socketId: currentUserId,
-            },
-          });
-        }
+      /* Si conversation entre deux personnes, on vérifie si la room existe déjà */
+      if (
+        io.sockets.adapter.rooms.has(
+          `${data.users[0].id}-${data.users[1].id}`
+        ) ||
+        io.sockets.adapter.rooms.has(`${data.users[1].id}-${data.users[0].id}`)
+      ) {
+        console.log("La conversation existe déjà");
+        return;
+      } else {
+        roomId = `${data.users[1].id}-${data.users[0].id}`;
       }
     } else {
-      for (let i = 0; i < data.users.length - 2; i++) {
-        const user = data.users[i];
-        console.log(user);
-      }
+      roomId = `${data.groupName}-${data.users[1].id}`;
+    }
+    /* On loop pour ajouter chaque utilisateur (groupe ou non) dans la room */
+    for (let i = 0; i < data.users.length; i++) {
+      const user = data.users[i];
+      userSocketId = i === data.users.length - 1 ? socket.id : user.socketId;
+      userSocket = io.sockets.sockets.get(userSocketId);
+
+      roomUsers.push({
+        id: user.id,
+        name: user.name,
+        job: user.job,
+        socketId: userSocketId,
+      });
+      userSocket.join(roomId);
     }
 
-    /* let selectedUserId = data.selectedUser.socketId;
-    let selectedUserSocket = io.sockets.sockets.get(selectedUserId);
-    let currentUserId = socket.id;
-    let room = `${selectedUserId}-${currentUserId}`;
+    io.to(roomId).emit("room created", {
+      roomId: roomId,
+      users: roomUsers,
+      messages: [],
+      createdBy: {
+        id: data.users[data.users.length - 1].id,
+        name: data.users[data.users.length - 1].name,
+        job: data.users[data.users.length - 1].job,
+        socketId: socket.id,
+      },
+      isGroup: data.isGroup,
+      groupName: data.groupName,
+    });
+  });
 
-    if (selectedUserSocket) {
-      if (
-        io.sockets.adapter.rooms.has(`${selectedUserId}-${currentUserId}`) ||
-        io.sockets.adapter.rooms.has(`${currentUserId}-${selectedUserId}`)
-      ) {
-        console.log("la room existe déjà");
-      } else {
-        console.log(
-          `Vous avez ouvert une discussion avec ${data.selectedUser.name}`
-        );
-        socket.join(room);
-        selectedUserSocket.join(room);
-
-        io.to(room).emit("room created", {
-          roomId: room,
-          users: {
-            currentUser: {
-              id: data.currentUser.id,
-              name: data.currentUser.name,
-              socketId: socket.id,
-            },
-            selectedUser: {
-              id: data.selectedUser.id,
-              name: data.selectedUser.name,
-              socketId: selectedUserId,
-            },
+  socket.on("update room", (data) => {
+    let userSocketId;
+    let userSocket;
+    console.log(data);
+    switch (data.type) {
+      case "remove user":
+        userSocketId = socket.id;
+        userSocket = io.sockets.sockets.get(userSocketId);
+        userSocket.leave(data.room.roomId);
+        data = {
+          ...data,
+          room: {
+            ...data.room,
+            users: data.room.users.filter((user) => user.id !== data.user.id),
           },
-          messages: [],
-        });
-      }
-    } else {
-      console.log("L'utilisateur est déconnecté.");
-    } */
+        };
+        if (data.room.users.lenth === 0) {
+          data = undefined;
+        }
+        break;
+      case "add users":
+        for (let i = 0; i < data.users.length; i++) {
+          const user = data.users[i];
+          userSocketId = user.socketId;
+          userSocket = io.sockets.sockets.get(userSocketId);
+          userSocket.join(data.room.roomId);
+          data.room.users.push({
+            id: user.id,
+            name: user.name,
+            job: user.job,
+            socketId: userSocketId,
+          });
+        }
+        break;
+      case "change group name":
+        data.room.groupName = data.groupName;
+        break;
+      default:
+        console.log("Erreur");
+        break;
+    }
+    console.log(data);
+    socket.broadcast.to(data.room.roomId).emit("room updated", data.room);
   });
 
   socket.on("send message", (data) => {

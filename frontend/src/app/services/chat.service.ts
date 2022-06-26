@@ -38,7 +38,23 @@ export class ChatService {
     this.socket.emit('create room', data);
   }
 
-  createRoomTest(users: ChatUser[]) {}
+  updateRoom(data: {
+    type: string;
+    room: Room;
+    user?: ChatUser;
+    users?: ChatUser[];
+    groupName?: string;
+  }) {
+    this.socket.emit('update room', data);
+  }
+
+  getUpdateRoom(): Observable<Room | undefined> {
+    return new Observable<Room | undefined>((observer) => {
+      this.socket.on('room updated', (data) => {
+        observer.next(data);
+      });
+    });
+  }
 
   setUserIsWriting(user: ChatUser | undefined, room: Room) {
     this.socket.emit('user is writing', { user: user, room: room });
@@ -72,4 +88,3 @@ export class ChatService {
     });
   }
 }
-/*  */

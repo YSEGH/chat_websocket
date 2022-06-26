@@ -48,3 +48,22 @@ body {
 *::-webkit-scrollbar {
   display: none;
 }
+
+button.square {
+  background-color: #2d8bec;
+  border: none;
+  height: 2.5rem;
+  width: 2.5rem;
+  padding: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: 0.25s;
+}
+
+button svg path {
+  transition: 0.25s;
+}
