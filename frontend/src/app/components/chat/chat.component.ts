@@ -17,16 +17,9 @@ let users: ChatUser[] = [
 export class ChatComponent implements OnInit {
   public isConnect: boolean = false;
   public createGroupButton: boolean = false;
-  public createUserButton: boolean = false;
+  public addUserButton: boolean = false;
   public currentUser: ChatUser = { id: '', name: '', job: '' };
-  public currentRoom!: Room /* = {
-    roomId: '',
-    users: [],
-    messages: [],
-    isGroup: false,
-    groupName: '',
-    createdBy: { id: '', name: '', job: '' },
-  } */;
+  public currentRoom!: Room | undefined;
   public rooms: Room[] = [];
   public userOnlineArray: ChatUser[] = [];
   public userOnlineFiltered: ChatUser[] = [];
@@ -49,7 +42,10 @@ export class ChatComponent implements OnInit {
         this.userSelectedForGroup.some((elem) => {
           return user.id === elem.id;
         })
-          ? { ...user, selected: true }
+          ? {
+              ...user,
+              selected: true,
+            }
           : user
       );
       /* On filtre la liste des utilisateurs dès la réception pour filtrer en temps réél */
@@ -79,7 +75,7 @@ export class ChatComponent implements OnInit {
             }
           : room
       );
-      if (data.roomId === this.currentRoom.roomId) {
+      if (data.roomId === this.currentRoom?.roomId) {
         this.messageArray = this.rooms.filter(
           (room) => room.roomId === data.roomId
         )[0].messages;
@@ -88,15 +84,32 @@ export class ChatComponent implements OnInit {
     });
     this.chatService.getUpdateRoom().subscribe((data) => {
       if (data) {
-        this.rooms = ([] as Room[]).concat(
-          this.rooms.map((room) =>
-            room.roomId === data.roomId ? (room = data) : room
-          )
-        );
-        if (!data.isGroup && data.users.length < 2) {
-          this.updateRoom('remove user', data, this.currentUser);
+        let isInclude = this.rooms.some((room) => {
+          if (room.roomId === data.roomId) {
+            return true;
+          }
+          return false;
+        });
+        if (isInclude) {
+          console.log('is include'); /*  */
+
+          this.rooms = ([] as Room[]).concat(
+            this.rooms.map((room) =>
+              room.roomId === data.roomId ? (room = data) : room
+            )
+          );
+          if (!data.isGroup && data.users.length < 2) {
+            this.updateRoom('remove user', data, this.currentUser);
+          }
+          if (this.currentRoom?.roomId === data.roomId) {
+            this.currentRoom = data;
+          }
+          console.log(this.currentRoom);
+        } else {
+          this.rooms.push(data);
         }
       }
+
       console.log(this.currentUser);
 
       console.log(this.rooms);
@@ -164,6 +177,30 @@ export class ChatComponent implements OnInit {
       );
     }
   }
+  checkDisabledUser(room: Room | undefined) {
+    console.log(room);
+
+    this.userOnlineArray = ([] as ChatUser[]).concat(
+      this.userOnlineArray.map((user) =>
+        room?.users.some((elem) => {
+          return user.id === elem.id;
+        })
+          ? { ...user, selected: true, disabled: true }
+          : user
+      )
+    );
+
+    this.userOnlineFiltered = ([] as ChatUser[]).concat(
+      this.userOnlineFiltered.map((user) =>
+        room?.users.some((elem) => {
+          return user.id === elem.id;
+        })
+          ? { ...user, selected: true, disabled: true }
+          : user
+      )
+    );
+    console.log(this.userOnlineFiltered);
+  }
 
   setUserOnlineFilteredHandler(userList: ChatUser[]) {
     /* Filtration du tableau en fonction du filtre : this.filterInput */
@@ -187,6 +224,8 @@ export class ChatComponent implements OnInit {
     isGroup: boolean = false,
     groupName?: string
   ) {
+    console.log('create a group');
+
     selectedUsers.push(this.currentUser);
     this.chatService.createRoom({
       users: selectedUsers,
@@ -194,23 +233,26 @@ export class ChatComponent implements OnInit {
       groupName: groupName,
     });
     if (isGroup) {
-      this.displayGroupInputHandler();
+      this.displayGroupInputHandler(true, false, undefined);
     }
   }
 
   updateRoom(
     type: string,
-    room: Room,
+    room?: Room,
     user?: ChatUser,
     users?: ChatUser[],
     groupName?: string
   ) {
+    console.log('update a group');
     if (type === 'remove user') {
       this.rooms = ([] as Room[]).concat(
-        this.rooms.filter((x) => x.roomId !== room.roomId)
+        this.rooms.filter((x) => x.roomId !== room?.roomId)
       );
-      /*       this.currentRoom = undefined;
-       */
+      this.currentRoom = undefined;
+    }
+    if (type === 'add users') {
+      this.displayGroupInputHandler(false, true, undefined);
     }
     this.chatService.updateRoom({ type, room, user, users, groupName });
   }
@@ -228,7 +270,7 @@ export class ChatComponent implements OnInit {
       id: this.currentUser.id,
       name: this.currentUser.name,
       message: this.message,
-      roomId: this.currentRoom.roomId,
+      roomId: this.currentRoom?.roomId,
     };
     this.chatService.sendMessage(data);
     this.chatService.setUserIsWriting(undefined, this.currentRoom);
@@ -246,23 +288,42 @@ export class ChatComponent implements OnInit {
     this.displayUserButton = !this.displayUserButton;
   }
 
-  displayGroupInputHandler(e?: Event, room?: Room) {
+  displayGroupInputHandler(create: boolean, update: boolean, e?: Event) {
     if (e) {
-      let test = e?.target as HTMLElement;
-      if (test.className !== 'modal-overlay') {
+      if (!this.clickOnOverlay(e)) {
         return;
-      }
+      } /*  */
     }
     if (!this.displayUserButton) {
       this.displayUserButtonHandler();
     }
+    if (create) {
+      this.createGroupButton = !this.createGroupButton;
+    }
+    if (update) {
+      this.addUserButton = !this.addUserButton;
+    }
+
+    /* A la fermeture de la modal, on réinitialise tous les changements */
     this.groupNameInput = '';
     this.userSelectedForGroup = [];
     this.userOnlineFiltered = ([] as ChatUser[]).concat(
       this.userOnlineFiltered.map((user) =>
-        user.selected ? { ...user, selected: false } : user
+        user.selected
+          ? { ...user, selected: false }
+          : user.disabled
+          ? { ...user, disabled: false }
+          : user
       )
     );
-    this.createGroupButton = !this.createGroupButton;
+
+    if (this.addUserButton) {
+      this.checkDisabledUser(this.currentRoom);
+    }
+  }
+
+  clickOnOverlay(e: Event) {
+    let overlay = e?.target as HTMLElement;
+    return overlay.className === 'modal-overlay';
   }
 }

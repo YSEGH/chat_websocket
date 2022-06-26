@@ -4,4 +4,5 @@ export interface ChatUser {
   job: string;
   socketId?: string;
   selected?: boolean;
+  disabled?: boolean;
 }

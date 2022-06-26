@@ -40,7 +40,7 @@ export class ChatService {
 
   updateRoom(data: {
     type: string;
-    room: Room;
+    room?: Room;
     user?: ChatUser;
     users?: ChatUser[];
     groupName?: string;
@@ -56,7 +56,7 @@ export class ChatService {
     });
   }
 
-  setUserIsWriting(user: ChatUser | undefined, room: Room) {
+  setUserIsWriting(user: ChatUser | undefined, room: Room | undefined) {
     this.socket.emit('user is writing', { user: user, room: room });
   }
 

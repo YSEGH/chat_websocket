@@ -75,3 +75,12 @@
 .user .input-checkbox.toggle:hover svg {
   background-color: #96e616a2;
 }
+.user .input-checkbox.toggle.disabled {
+  pointer-events: none;
+}
+.user .input-checkbox.toggle.disabled svg {
+  background-color: #979797;
+}
+/* .user .input-checkbox.toggle.disabled:hover svg {
+  pointer-events: none;
+} */

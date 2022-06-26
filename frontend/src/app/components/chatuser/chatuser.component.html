@@ -1,6 +1,12 @@
 <div
-  class="user {{ hoverEffect ? 'hover' : '' }}"
-  (click)="checkBox ? addUser.emit(user) : createRoom.emit([user])"
+  class="user {{ hoverEffect && !user?.disabled ? 'hover' : '' }}"
+  (click)="
+    checkBox && !user?.disabled
+      ? addUser.emit(user)
+      : user?.disabled
+      ? ''
+      : createRoom.emit([user])
+  "
 >
   <img
     src="assets/avatar.png"
@@ -12,10 +18,12 @@
     <span>{{ user?.job }}</span>
   </h4>
   <div
-    class="input-checkbox {{ user?.selected ? 'toggle' : '' }}"
+    class="input-checkbox {{ user?.selected ? 'toggle' : '' }} {{
+      user?.disabled ? 'disabled' : ''
+    }}"
     *ngIf="checkBox"
     type="checkbox"
-    (click)="addUser.emit(user)"
+    (click)="user?.disabled ? '' : addUser.emit(user)"
   >
     <svg
       width="24"

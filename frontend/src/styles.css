@@ -48,7 +48,11 @@ body {
 *::-webkit-scrollbar {
   display: none;
 }
-
+button {
+  border-radius: 2px;
+  transition: 0.25s;
+  cursor: pointer;
+}
 button.square {
   background-color: #2d8bec;
   border: none;
@@ -59,9 +63,6 @@ button.square {
   align-items: center;
   justify-content: center;
   margin-right: 1rem;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: 0.25s;
 }
 
 button svg path {

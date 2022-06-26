@@ -18,7 +18,7 @@
           <app-chatuser
             *ngFor="let user of userOnlineFiltered"
             (createRoom)="!createGroupButton && createRoom($event)"
-            [checkBox]="createGroupButton"
+            [checkBox]="createGroupButton || addUserButton"
             [user]="user"
             (addUser)="addUserHandler($event)"
           ></app-chatuser>
@@ -77,7 +77,7 @@
           <button
             class="square create-groupe {{ createGroupButton ? 'active' : '' }}"
             title="Créer un groupe"
-            (click)="displayGroupInputHandler()"
+            (click)="displayGroupInputHandler(true, false, undefined)"
           >
             <svg
               width="24"
@@ -104,6 +104,7 @@
         class="square add-user"
         title="Ajouter un ami"
         *ngIf="currentRoom.isGroup"
+        (click)="displayGroupInputHandler(false, true)"
       >
         <svg
           width="24"
@@ -198,24 +199,47 @@
 
 <div
   class="modal-overlay"
-  *ngIf="createGroupButton"
-  (click)="displayGroupInputHandler($event)"
+  *ngIf="createGroupButton || addUserButton"
+  (click)="displayGroupInputHandler(createGroupButton, addUserButton, $event)"
 >
   <div class="modal">
-    <div class="input-container">
+    <div class="input-container" *ngIf="!addUserButton; else addUser">
       <h4>Nom du groupe</h4>
       <input type="text" [(ngModel)]="groupNameInput" />
     </div>
-    <div class="user-container">
-      <div *ngFor="let user of userSelectedForGroup">
-        <app-chatuser [user]="user" [hoverEffect]="false"></app-chatuser>
+    <ng-template #addUser>
+      <div class="input-container add-user">
+        <h4>{{ currentRoom?.groupName }}</h4>
       </div>
+    </ng-template>
+    <div
+      class="user-container {{
+        userSelectedForGroup.length === 0 ? 'empty' : ''
+      }}"
+    >
+      <ng-container *ngIf="userSelectedForGroup.length > 0; else noUser">
+        <div *ngFor="let user of userSelectedForGroup">
+          <app-chatuser [user]="user" [hoverEffect]="false"></app-chatuser>
+        </div>
+      </ng-container>
+      <ng-template #noUser>
+        <p>Ajoutez vos amis</p>
+      </ng-template>
     </div>
     <div class="button-container">
       <button
         class="validate"
         title="Valider"
-        (click)="createRoom(userSelectedForGroup, true, groupNameInput)"
+        (click)="
+          !addUserButton
+            ? createRoom(userSelectedForGroup, true, groupNameInput)
+            : updateRoom(
+                'add users',
+                currentRoom,
+                undefined,
+                userSelectedForGroup
+              )
+        "
       >
         <svg
           width="24"
@@ -232,7 +256,13 @@
           />
         </svg>
       </button>
-      <a class="cancel" title="Annuler" (click)="displayGroupInputHandler()">
+      <a
+        class="cancel"
+        title="Annuler"
+        (click)="
+          displayGroupInputHandler(createGroupButton, addUserButton, undefined)
+        "
+      >
         Annuler
       </a>
     </div>

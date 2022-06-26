@@ -87,7 +87,7 @@ io.on("connection", (socket) => {
   socket.on("update room", (data) => {
     let userSocketId;
     let userSocket;
-    console.log(data);
+
     switch (data.type) {
       case "remove user":
         userSocketId = socket.id;
@@ -119,14 +119,20 @@ io.on("connection", (socket) => {
         }
         break;
       case "change group name":
-        data.room.groupName = data.groupName;
+        data = {
+          ...data,
+          room: {
+            ...data.room,
+            groupName: data.groupName,
+          },
+        };
         break;
       default:
         console.log("Erreur");
         break;
     }
-    console.log(data);
-    socket.broadcast.to(data.room.roomId).emit("room updated", data.room);
+
+    io.to(data.room.roomId).emit("room updated", data.room);
   });
 
   socket.on("send message", (data) => {

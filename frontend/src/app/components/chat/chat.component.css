@@ -122,7 +122,12 @@
   font-weight: 400;
 }
 .chat .chat-details .rooms-details .infos-container button {
-  cursor: pointer;
+  color: var(--dark);
+  border: 1px solid var(--dark);
+  background-color: rgba(211, 211, 211, 0.081);
+}
+.chat .chat-details .rooms-details .infos-container button:hover {
+  background-color: rgba(126, 126, 126, 0.118);
 }
 /* end--infos-container */
 /* rooms-container */
@@ -184,11 +189,11 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  background-color: #fff;
 }
 .chat .room-discussion .button-container button {
   margin-right: 0.5rem;
   padding: 0 !important;
+  background-color: transparent;
 }
 .chat .room-discussion .button-container button svg {
   width: 2.5rem;
@@ -196,17 +201,12 @@
 .chat .room-discussion .button-container button svg path {
   fill: #fff;
 }
-.chat .room-discussion .button-container button.add-user {
-  background-color: #2d8bec;
-}
-.chat .room-discussion .button-container button.add-user:hover {
-  background-color: #0b6dce;
-}
-.chat .room-discussion .button-container button.leave-room {
-  background-color: #fff !important;
-}
+.chat .room-discussion .button-container button.add-user svg path,
 .chat .room-discussion .button-container button.leave-room svg path {
   fill: var(--dark);
+}
+.chat .room-discussion .button-container button.add-user:hover svg path {
+  fill: #0b6dce;
 }
 .chat .room-discussion .button-container button.leave-room:hover svg path {
   fill: #d45924;
@@ -372,6 +372,9 @@
   flex-direction: column;
   align-items: center;
 }
+.modal-overlay .modal .input-container.add-user {
+  height: fit-content;
+}
 .modal-overlay .modal .input-container h4 {
   font-weight: 200;
   margin-top: 0;
@@ -390,12 +393,20 @@
 }
 .modal-overlay .modal .user-container {
   height: 13rem;
-  max-height: 13rem;
   overflow-y: scroll;
   padding: 1rem 0;
   border-bottom: 1px solid #ececec24;
 }
-
+.modal-overlay .modal .user-container.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay .modal .user-container.empty p {
+  font-weight: 100;
+  font-size: 14px;
+  color: rgba(151, 151, 151, 0.579);
+}
 .modal-overlay .modal .button-container {
   display: flex;
   flex-direction: column;

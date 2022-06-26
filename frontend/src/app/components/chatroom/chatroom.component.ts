@@ -9,7 +9,7 @@ import { Room } from 'src/app/models/room';
 })
 export class ChatroomComponent implements OnInit {
   @Input() room?: Room;
-  @Input() active: boolean = false;
+  @Input() active: boolean | undefined = false;
   @Input() currentUser?: ChatUser;
   @Output() setCurrentRoom: EventEmitter<Room> = new EventEmitter();
   public roomTitle: string | undefined = '';
