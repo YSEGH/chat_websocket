@@ -32,24 +32,12 @@ export class ChatComponent implements OnInit {
   public groupNameInput: string = '';
 
   constructor(private chatService: ChatService) {}
-  /*  */
+
   ngOnInit(): void {
     this.currentUser = users[0];
     this.setUserConnectHandler();
     this.chatService.getUsersOnline(this.currentUser.id).subscribe((data) => {
-      /* On met à jour la nouvelle liste des utilisateurs en fonction de ceux déjà présents dans la liste des utilisateurs séléctionnés : this.userSelectedForGroup */
-      this.userOnlineArray = data.map((user) =>
-        this.userSelectedForGroup.some((elem) => {
-          return user.id === elem.id;
-        })
-          ? {
-              ...user,
-              selected: true,
-            }
-          : user
-      );
-      /* On filtre la liste des utilisateurs dès la réception pour filtrer en temps réél */
-      this.setUserOnlineFilteredHandler(this.userOnlineArray);
+      this.updateSelectedDisabledUsersOnline(data);
     });
     this.chatService.getRooms().subscribe((data) => {
       this.rooms.push(data);
@@ -91,8 +79,6 @@ export class ChatComponent implements OnInit {
           return false;
         });
         if (isInclude) {
-          console.log('is include'); /*  */
-
           this.rooms = ([] as Room[]).concat(
             this.rooms.map((room) =>
               room.roomId === data.roomId ? (room = data) : room
@@ -104,15 +90,10 @@ export class ChatComponent implements OnInit {
           if (this.currentRoom?.roomId === data.roomId) {
             this.currentRoom = data;
           }
-          console.log(this.currentRoom);
         } else {
           this.rooms.push(data);
         }
       }
-
-      console.log(this.currentUser);
-
-      console.log(this.rooms);
     });
     this.chatService
       .getUserIsWriting()
@@ -121,6 +102,112 @@ export class ChatComponent implements OnInit {
 
   ngOnChanges(changes: SimpleChanges) {
     console.log(changes);
+  }
+
+  /* Fonction pour conserver les modifications en cas de connexion déconnexion d'un utilisateur */
+  updateSelectedDisabledUsersOnline(data: ChatUser[]) {
+    this.userOnlineArray = data.map((user) =>
+      this.userSelectedForGroup.some((elem) => {
+        return user.id === elem.id;
+      })
+        ? {
+            ...user,
+            selected: true,
+          }
+        : user
+    );
+
+    this.updateSelectedDisabledUsersFiltered();
+
+    if (this.addUserButton) {
+      this.userOnlineArray = ([] as ChatUser[]).concat(
+        this.userOnlineArray.map((user) =>
+          this.currentRoom?.users.some((elem) => {
+            return user.id === elem.id;
+          })
+            ? {
+                ...user,
+                disabled: true,
+              }
+            : user
+        )
+      );
+      this.checkDisabledUser();
+    }
+
+    if (this.filterInput) {
+      this.updateSelectedDisabledUsersWithFilter();
+    }
+  }
+
+  updateSelectedDisabledUsersFiltered() {
+    this.userOnlineFiltered = ([] as ChatUser[]).concat(
+      this.userOnlineArray.map((user) =>
+        this.userSelectedForGroup.some((elem) => {
+          return user.id === elem.id;
+        })
+          ? {
+              ...user,
+              selected: true,
+            }
+          : user
+      )
+    );
+
+    if (this.addUserButton && this.currentRoom) {
+      this.userOnlineFiltered = ([] as ChatUser[]).concat(
+        this.userOnlineArray.map((user) =>
+          this.currentRoom?.users.some((elem) => {
+            return user.id === elem.id;
+          })
+            ? {
+                ...user,
+                disabled: true,
+              }
+            : user
+        )
+      );
+    }
+    this.updateSelectedDisabledUsersWithFilter();
+  }
+
+  updateSelectedDisabledUsersWithFilter() {
+    /* Filtration du tableau en fonction du filtre : this.filterInput */
+    this.userOnlineFiltered = this.userOnlineArray.filter((user) =>
+      user.name.toLowerCase().includes(this.filterInput.toLowerCase())
+    );
+    /* Pour que la liste des utilisateurs selectionnés soit mis à jour en cas de déconnexion d'un utilisateur */
+    this.userSelectedForGroup = ([] as ChatUser[]).concat(
+      this.userOnlineArray.filter((user) => user.selected === true)
+    );
+  }
+
+  selectUserHandler(userSelected: ChatUser) {
+    let selected: boolean = false;
+    if (!userSelected.selected) {
+      selected = true;
+      this.userSelectedForGroup.push({ ...userSelected, selected: selected });
+    }
+    /* On modifie le user dans le tableau général {...user, selected: selected} */
+    this.userOnlineArray = ([] as ChatUser[]).concat(
+      this.userOnlineArray.map((user) =>
+        user.id === userSelected.id ? { ...user, selected: selected } : user
+      )
+    );
+
+    /* On modifie le user dans le tableau filtré {...user, selected: selected} */
+    this.userOnlineFiltered = ([] as ChatUser[]).concat(
+      this.userOnlineFiltered.map((user) =>
+        user.id === userSelected.id ? { ...user, selected: selected } : user
+      )
+    );
+
+    /* Si'lutilisateur était déjà dans this.userSelectedForGroup on le retire */
+    if (userSelected.selected) {
+      this.userSelectedForGroup = this.userSelectedForGroup.filter(
+        (user) => user.id !== userSelected.id
+      );
+    }
   }
 
   scrollToBottom() {
@@ -150,39 +237,10 @@ export class ChatComponent implements OnInit {
     this.chatService.setUserDisconnect(this.currentUser);
   }
 
-  addUserHandler(userSelected: ChatUser) {
-    let selected: boolean = false;
-    if (!userSelected.selected) {
-      selected = true;
-      this.userSelectedForGroup.push({ ...userSelected, selected: selected });
-    }
-    /* On modifie le user dans le tableau général {...user, selected: selected} */
+  checkDisabledUser() {
     this.userOnlineArray = ([] as ChatUser[]).concat(
       this.userOnlineArray.map((user) =>
-        user.id === userSelected.id ? { ...user, selected: selected } : user
-      )
-    );
-
-    /* On modifie le user dans le tableau filtré {...user, selected: selected} */
-    this.userOnlineFiltered = ([] as ChatUser[]).concat(
-      this.userOnlineFiltered.map((user) =>
-        user.id === userSelected.id ? { ...user, selected: selected } : user
-      )
-    );
-
-    /* Si'lutilisateur était déjà dans this.userSelectedForGroup on le retire */
-    if (userSelected.selected) {
-      this.userSelectedForGroup = this.userSelectedForGroup.filter(
-        (user) => user.id !== userSelected.id
-      );
-    }
-  }
-  checkDisabledUser(room: Room | undefined) {
-    console.log(room);
-
-    this.userOnlineArray = ([] as ChatUser[]).concat(
-      this.userOnlineArray.map((user) =>
-        room?.users.some((elem) => {
+        this.currentRoom?.users.some((elem) => {
           return user.id === elem.id;
         })
           ? { ...user, selected: true, disabled: true }
@@ -192,24 +250,12 @@ export class ChatComponent implements OnInit {
 
     this.userOnlineFiltered = ([] as ChatUser[]).concat(
       this.userOnlineFiltered.map((user) =>
-        room?.users.some((elem) => {
+        this.currentRoom?.users.some((elem) => {
           return user.id === elem.id;
         })
           ? { ...user, selected: true, disabled: true }
           : user
       )
-    );
-    console.log(this.userOnlineFiltered);
-  }
-
-  setUserOnlineFilteredHandler(userList: ChatUser[]) {
-    /* Filtration du tableau en fonction du filtre : this.filterInput */
-    this.userOnlineFiltered = userList.filter((user) =>
-      user.name.toLowerCase().includes(this.filterInput.toLowerCase())
-    );
-    /* Pour que la liste des utilisateurs selectionnés soit mis à jour en cas de déconnexion d'un utilisateur */
-    this.userSelectedForGroup = ([] as ChatUser[]).concat(
-      userList.filter((user) => user.selected === true)
     );
   }
 
@@ -224,8 +270,6 @@ export class ChatComponent implements OnInit {
     isGroup: boolean = false,
     groupName?: string
   ) {
-    console.log('create a group');
-
     selectedUsers.push(this.currentUser);
     this.chatService.createRoom({
       users: selectedUsers,
@@ -244,7 +288,6 @@ export class ChatComponent implements OnInit {
     users?: ChatUser[],
     groupName?: string
   ) {
-    console.log('update a group');
     if (type === 'remove user') {
       this.rooms = ([] as Room[]).concat(
         this.rooms.filter((x) => x.roomId !== room?.roomId)
@@ -318,7 +361,7 @@ export class ChatComponent implements OnInit {
     );
 
     if (this.addUserButton) {
-      this.checkDisabledUser(this.currentRoom);
+      this.checkDisabledUser();
     }
   }
 

@@ -8,7 +8,7 @@
           type="text"
           placeholder="Rechercher..."
           [(ngModel)]="filterInput"
-          (ngModelChange)="setUserOnlineFilteredHandler(userOnlineArray)"
+          (ngModelChange)="updateSelectedDisabledUsersWithFilter()"
         />
       </div>
       <div
@@ -20,7 +20,7 @@
             (createRoom)="!createGroupButton && createRoom($event)"
             [checkBox]="createGroupButton || addUserButton"
             [user]="user"
-            (addUser)="addUserHandler($event)"
+            (addUser)="selectUserHandler($event)"
           ></app-chatuser>
         </ng-container>
         <ng-template #noUserConnect>

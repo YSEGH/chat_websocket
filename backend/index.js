@@ -119,13 +119,7 @@ io.on("connection", (socket) => {
         }
         break;
       case "change group name":
-        data = {
-          ...data,
-          room: {
-            ...data.room,
-            groupName: data.groupName,
-          },
-        };
+        data.room.groupName = data.groupName;
         break;
       default:
         console.log("Erreur");
